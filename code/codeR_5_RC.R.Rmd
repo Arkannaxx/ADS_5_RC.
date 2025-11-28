@@ -1,0 +1,136 @@
+---
+title: "Rakha"
+output: html_document
+date: "2025-11-27"
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+library(stringr)
+```
+
+```{r}
+data_raw <- read_csv("Dataset Tugas Besar ADS 2025 - Karakteristik Mahasiswa .csv")
+
+colnames(data_raw)
+
+```
+
+```{r}
+data_clean <- data_raw %>%
+  select(
+    Organisasi = `Keterlibatan Organisai`, 
+    Jam_Belajar_Raw = `Rata-rata belajar perminggu (dalam jam) :`
+  ) %>%
+  mutate(
+
+    Jam_Belajar_Num = str_replace(Jam_Belajar_Raw, ",", "."),
+    
+
+    Jam_Belajar_Num = str_remove_all(Jam_Belajar_Num, "[^0-9.]"),
+    
+
+    Jam_Belajar_Num = as.numeric(Jam_Belajar_Num)
+  ) %>%
+  mutate(
+    Jam_Belajar_Num = ifelse(is.na(Jam_Belajar_Num), 
+                             median(Jam_Belajar_Num, na.rm = TRUE), 
+                             Jam_Belajar_Num)
+  )
+
+
+head(data_clean)
+summary(data_clean$Jam_Belajar_Num) 
+
+```
+
+Dasar Standarisasi:
+
+Variabel Organisasi: Dikelompokkan menjadi Biner (Aktif vs Tidak Aktif) untuk ketegasan analisis.
+
+Variabel Jam Belajar: Menggunakan pendekatan Statistik Deskriptif Berbasis Distribusi (Kuartil). Ini adalah standar objektif untuk membagi data menjadi "Rendah", "Sedang", dan "Tinggi" berdasarkan sebaran data aktual mahasiswa, bukan angka tebakan semata.
+
+```{r}
+kuartil <- quantile(data_clean$Jam_Belajar_Num, probs = c(0.33, 0.66))
+
+data_final <- data_clean %>%
+  mutate(
+    Kategori_Organisasi = case_when(
+      str_detect(Organisasi, "Tidak Aktif") ~ "Tidak Aktif",
+      TRUE ~ "Aktif" 
+    ),
+    
+    Kategori_Belajar = case_when(
+      Jam_Belajar_Num < kuartil[1] ~ "Rendah",
+      Jam_Belajar_Num < kuartil[2] ~ "Sedang",
+      TRUE ~ "Tinggi"
+    )
+  )
+
+
+data_final$Kategori_Belajar <- factor(data_final$Kategori_Belajar, 
+                                      levels = c("Rendah", "Sedang", "Tinggi"))
+
+table(data_final$Kategori_Organisasi, data_final$Kategori_Belajar)
+```
+
+```{r}
+ggplot(data_final, aes(x = Kategori_Organisasi, fill = Kategori_Belajar)) +
+  geom_bar(position = "fill") +
+  labs(
+    title = "Proporsi Intensitas Belajar Berdasarkan Keaktifan Organisasi",
+    x = "Status Keaktifan Organisasi",
+    y = "Proporsi",
+    fill = "Intensitas Belajar"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+```
+
+H0 (Null): Tidak ada hubungan antara keaktifan organisasi dengan intensitas jam belajar (Saling Bebas/Independen).
+
+H1 (Alternatif): Terdapat hubungan antara keaktifan organisasi dengan intensitas jam belajar (Dependen).
+
+```{r}
+tabel_kontingensi <- table(data_final$Kategori_Organisasi, data_final$Kategori_Belajar)
+
+uji_chi <- chisq.test(tabel_kontingensi)
+
+print(uji_chi)
+
+```
+Kesimpulan Statistik: Karena P-value (0.07231) > 0.05, maka keputusannya adalah Gagal Tolak H0. Artinya: TIDAK ADA HUBUNGAN yang signifikan antara keaktifan organisasi dengan jam belajar.
+
+Jadi, mitos bahwa "Anak organisasi pasti sibuk dan gak sempat belajar" itu TIDAK TERBUKTI di data ini. Mahasiswa yang aktif organisasi maupun yang tidak (kupu-kupu) punya pola jam belajar yang mirip-mirip saja.
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
