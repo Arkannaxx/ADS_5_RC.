@@ -1,8 +1,8 @@
 ﻿# **README.md – Tugas Besar Analisis Data Statistika 2025**
 
 _(Kelompok 5 – Kelas RC)_
-# ⭐ **Anggota Kelompok 5 – Kelas RA**
-
+# ⭐ **Anggota Kelompok 5 – Kelas RC**
+c
 1.  **Rakha Rabbani** – _NIM: 123450098_
     
 2.  **Layina Ropiqo** – _NIM: 124450016_
